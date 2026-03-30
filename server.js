@@ -7,6 +7,7 @@ import cors from 'cors';
 import { Server } from "socket.io";
 import http from 'http'
 import { connectDB, getCollection, closeDB } from './config/database.js';
+import { generateOrderId, orderHandler } from './socket/orderHandler.js';
 
 // Load environment variables
 dotenv.config();
@@ -18,7 +19,13 @@ const server = http.createServer(app)
 const io = new Server(server,{ cors:{origin: '*', methods: ["GET, POST"],} });
 
 io.on("connection", (socket) => {
-  console.log(socket.id);
+  console.log('user connect from io', socket.id);
+  socket.emit('Connected', {message: `user ${socket.id} connected`})
+
+  console.log(generateOrderId());
+
+  // for handling orders
+  orderHandler(io, socket)
 });
 
 // Middleware
