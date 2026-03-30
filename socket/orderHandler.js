@@ -1,3 +1,4 @@
+import { Timestamp } from "mongodb";
 import { validateOrder } from "../utils/halper.js";
 
 export const orderHandler = (io, socket) => {
@@ -32,7 +33,7 @@ export function generateOrderId() {
 
 
 // Calculate
-export function calculateTotals(items){
+export function calculateTotals(items) {
     const subTotals = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     const tax = subTotals * 0.10
     const deliveryFee = 35.00
@@ -43,5 +44,34 @@ export function calculateTotals(items){
         tax: Math.round(tax * 100) / 100,
         deliveryFee,
         total: Math.round(total * 100) / 100
+    }
+}
+
+
+// Create Order Document
+export function createOrderDocument(orderData, orderId, totals) {
+    return {
+        orderId,
+        customerName: orderData.customerName.trim(),
+        customerPhone: orderData.customerPhone.trim(),
+        customerAddress: orderData.customerAddress.trim(),
+        items: orderData.items,
+        subTotals: totals.subTotals,
+        tax: totals.tax,
+        deliveryFee: totals.deliveryFee,
+        totalAmmount: totals.total,
+        specialNotes: orderData.specialNotes || '',
+        paymentMethod: orderData.paymentMethod || 'Cash',
+        paymentStatus: 'Pending',
+        status: 'Pending',
+        statusHistory: [{
+            status: 'Pending',
+            timestamp: new Date(),
+            by: 'Customer',
+            note: 'Order Placed'
+        }],
+        estimatedCount: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
     }
 }
