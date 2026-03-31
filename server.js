@@ -14,6 +14,7 @@ dotenv.config();
 
 // Create Express app
 const app = express();
+
 const server = http.createServer(app)
 
 const io = new Server(server,{ cors:{origin: '*', methods: ["GET, POST"],} });

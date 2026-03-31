@@ -1,4 +1,4 @@
-import { Timestamp } from "mongodb";
+import { getCollection } from "../config/database.js";
 import { validateOrder } from "../utils/halper.js";
 
 export const orderHandler = (io, socket) => {
@@ -13,8 +13,25 @@ export const orderHandler = (io, socket) => {
             if (!validation.valid) {
                 return callback({ success: false, message: validation.message })
             }
+
+            const totals = calculateTotals(data.items)
+            const orderId = generateOrderId()
+            const order = createOrderDocument(data, orderId, totals)
+
+            const ordersCollection = getCollection('orders')
+            await ordersCollection.insetOne(order)
+
+            socket.join(`order-${orderId}`)
+            socket.join('customers')
+
+            io.to('admins').emit('newOrders', {order})
+
+            callback({success: true, order})
+            console.log(`order created: ${orderId}`);
+
         } catch (error) {
             console.log(error);
+            callback({success: false, message: 'Failed to place order..'})
         }
     })
 }
